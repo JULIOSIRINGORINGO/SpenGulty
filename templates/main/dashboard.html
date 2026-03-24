@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="dash-header-container">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <small style="opacity: 0.8; font-weight: 400;">Welcome</small>
+            <h5 class="fw-bold m-0" style="font-weight: 700;">{{ user.nama }}</h5>
+        </div>
+        
+        <div class="avatar-white" style="overflow: hidden; padding: 0; display: flex; align-items: center; justify-content: center;">
+            {% if user.foto %}
+                <img src="{{ url_for('static', filename='uploads/' + user.foto) }}" 
+                     alt="Profile" 
+                     style="width: 100%; height: 100%; object-fit: cover;">
+            {% else %}
+                <i class="fas fa-user" style="color: #6CB4EE; font-size: 1.2rem;"></i>
+            {% endif %}
+        </div>
+        </div>
+    
+    <div class="d-flex justify-content-between align-items-end" style="margin-top: 80px;">
+        <span style="font-size: 0.9rem; font-weight: 500;">Sisa saldo :</span>
+        <h4 class="fw-bold m-0" style="font-size: 1.3rem;">Rp. {{ "{:,.0f}".format(sisa).replace(',', '.') }}</h4>
+    </div>
+</div>
+
+<div class="main-content-overlap">
+    <div class="card-total-giant">
+        <div class="total-label">Total Pengeluaran</div>
+        <div class="amount-container">
+            <h2 class="total-amount">Rp. {{ "{:,.0f}".format(total).replace(',', '.') }}</h2>
+        </div>
+    </div>
+
+    <div class="row g-4 menu-section">
+        
+        <div class="col-4">
+            <a href="{{ url_for('add_category') }}" class="grid-menu-box shadow-sm" >
+                <i class="fas fa-folder-plus" style="color: #6CB4EE;" ></i> 
+            </a>
+        </div>
+        
+        <div class="col-4">
+           <a href="{{ url_for('set_budget') }}" class="grid-menu-box shadow-sm">
+                <i class="fas fa-wallet" style="color: #6CB4EE;""></i>
+            </a>
+        </div>
+        
+        <div class="col-4">
+            <a href="{{ url_for('chart') }}" class="grid-menu-box shadow-sm">
+                <i class="fas fa-chart-line" style="color: #6CB4EE;" ></i> 
+            </a>
+        </div>
+    </div>
+</div>
+
+<a href="{{ url_for('add_expense') }}" class="btn-fab-plus">
+    <i class="fas fa-plus" ></i>
+</a>
+
+<script>
+function formatRupiah(input) {
+    let value = input.value.replace(/[^,\d]/g, '').toString();
+    let split = value.split(',');
+    let sisa = split[0].length % 3;
+    let rupiah = split[0].substr(0, sisa);
+    let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+    if (ribuan) {
+        let separator = sisa ? '.' : '';
+        rupiah += separator + ribuan.join('.');
+    }
+
+    rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+    input.value = 'Rp ' + rupiah;
+    document.getElementById('real-nominal').value = value;
+}
+</script>
+
+{% endblock %}

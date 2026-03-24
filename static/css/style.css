@@ -1,0 +1,430 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap');
+
+body {
+    background-color: #F8FAFD;
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    min-height: 100vh;
+    position: relative;
+}
+
+/* === HEADER (Ditinggikan agar sisa saldo tidak nabrak) === */
+.dash-header-container {
+    background: linear-gradient(180deg, #5AB9FF 0%, #2196F3 100%);
+    height: 320px; /* Ditambah tinggi agar tidak nabrak card */
+    border-bottom-left-radius: 50px;
+    border-bottom-right-radius: 50px;
+    padding: 40px 25px;
+    color: white;
+    position: relative;
+    z-index: 1;
+}
+
+.avatar-white {
+    width: 60px;
+    height: 60px;
+    background-color: white;
+    border-radius: 50%;
+}
+
+/* === KARTU RAKSASA (FIX CENTER) === */
+.main-content-overlap {
+    margin-top: -100px; /* Dikurangi agar ada jarak dari saldo */
+    padding: 0 20px;
+    position: relative;
+    z-index: 10;
+}
+
+.card-total-giant {
+    background: white;
+    border-radius: 40px;
+    padding: 30px;
+    height: 240px; /* Tinggi tetap */
+    box-shadow: 0 15px 45px rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 40px;
+}
+
+.total-label {
+    color: #A5A5A5;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-align: left;
+}
+
+/* Kontainer khusus agar angka benar-benar di tengah sisa space */
+.amount-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.total-amount {
+    color: #222;
+    font-weight: 800;
+    font-size: 2.2rem; /* Ukuran pas agar tidak terlalu besar */
+    margin: 0;
+    letter-spacing: -1px;
+}
+
+/* === TOMBOL MENU === */
+.menu-section {
+    margin-top: 20px;
+    padding: 0 5px;
+}
+
+.grid-menu-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: white !important;
+    height: 80px;
+    border-radius: 22px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+    color: #2196F3 !important;
+    text-decoration: none !important;
+    border: none;
+    font-size: 1.8rem;
+}
+
+/* === NAVIGASI BAWAH (MENEMPEL KE BAWAH) === */
+.bottom-nav-wrapper {
+    position: fixed;
+    bottom: 0; /* Pas di paling bawah layar */
+    left: 0;
+    width: 100%;
+    z-index: 2000;
+}
+
+.bottom-nav-bar {
+    background: white;
+    height: 75px;
+    width: 100%;
+    border-radius: 35px 35px 0 0; /* Hanya lengkung atas */
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    box-shadow: 0 -10px 30px rgba(0,0,0,0.05);
+}
+
+.nav-link-custom {
+    color: #D1D8E0;
+    font-size: 1.6rem;
+    text-decoration: none;
+}
+.nav-link-custom.active { color: #2196F3; }
+
+/* FAB (+) */
+.btn-fab-plus {
+    position: fixed;
+    bottom: 95px; /* Jarak pas di atas navbar */
+    right: 25px;
+    background: linear-gradient(180deg, #5AB9FF 0%, #2196F3 100%);
+    color: white;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.8rem;
+    text-decoration: none;
+    box-shadow: 0 10px 25px rgba(90, 185, 255, 0.4);
+    z-index: 1000;
+}
+
+
+/*---------------------------------------------
+
+/* === HALAMAN TAMBAH PENGELUARAN === */
+.add-expense-bg {
+    background: linear-gradient(180deg, #5AB9FF 0%, #2196F3 100%);
+    min-height: 100vh;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+
+.card-input-white {
+    background: white;
+    width: 100%;
+    max-width: 320px;
+    border-radius: 40px;
+    padding: 40px 30px;
+}
+
+.form-input-custom {
+    width: 100%;
+    border: none;
+    border-bottom: 1.5px solid #DDD; /* Garis bawah saja */
+    padding: 10px 5px;
+    font-size: 0.9rem;
+    color: #555;
+    outline: none;
+    background: transparent;
+    margin-bottom: 10px;
+}
+
+.form-input-custom:focus {
+    border-bottom: 1.5px solid #2196F3;
+}
+
+.btn-action-text {
+    color: #333;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+/*------------------
+/* === DAFTAR PENGELUARAN (HOME) === */
+.card-list-white {
+    background: white;
+    border-radius: 40px;
+    padding: 30px 15px;
+    min-height: 500px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    position: relative;
+    z-index: 10;
+}
+
+/* Link nominal yang bisa diklik */
+.nominal-link {
+    color: #5AB9FF;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.nominal-link:hover {
+    color: #2196F3;
+    text-decoration: underline;
+}
+
+/* Garis pemisah tipis antar baris */
+.border-bottom-custom {
+    border-bottom: 1px solid #F0F0F0;
+}
+
+.border-bottom-custom:last-child {
+    border-bottom: none;
+}
+/* Efek saat baris tabel disentuh/hover */
+.clickable-row:active {
+    background-color: #f8f9fa;
+}
+
+/* Memastikan teks yang panjang tetap rapi di tabel utama */
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+}
+
+/* Gaya tambahan untuk teks detail di popup */
+.detail-info span {
+    font-size: 0.95rem;
+    color: #333;
+}
+
+.modal-content {
+    box-shadow: 0 15px 50px rgba(0,0,0,0.1) !important;
+}
+
+/* === KONTEN (Diturunkan agar tidak nabrak logo) === */
+/* Gaya tombol ikon aksi bulat diperkecil */
+.icon-action-btn {
+    width: 42px; /* Ukuran box diperkecil */
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem; /* Ukuran ikon di dalam juga disesuaikan */
+    border-radius: 50%;
+    border-width: 1.5px;
+    transition: all 0.2s ease-in-out;
+}
+
+.icon-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* Warna Biru Khusus SpendGuilty */
+.text-nominal-blue {
+    color: #5AB9FF !important;
+}
+
+.btn-outline-primary {
+    color: #5AB9FF;
+    border-color: #5AB9FF;
+}
+
+.btn-outline-primary:hover {
+    background-color: #5AB9FF;
+    border-color: #5AB9FF;
+}
+
+/* === SIDEBAR CUSTOM === */
+.sidebar-custom {
+    height: 100%;
+    width: 280px;
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    right: -280px; /* Sembunyi di kanan layar */
+    background-color: white;
+    overflow-x: hidden;
+    transition: 0.3s; /* Efek halus saat muncul */
+    border-radius: 30px 0 0 30px;
+}
+
+.search-box {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.search-box input:focus {
+    box-shadow: none;
+    background-color: #f1f1f1 !important;
+}
+
+.sidebar-links a:hover {
+    color: #5AB9FF !important;
+}
+
+/* GAYA IKON FILTER BARU */
+.icon-filter-container {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #5AB9FF; /* Biru khas kita */
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.filter-text {
+    font-size: 0.95rem;
+    color: #333;
+    letter-spacing: 0.5px;
+}
+
+.cursor-pointer:hover .icon-filter-container {
+    transform: scale(1.1);
+    transition: 0.2s;
+}
+
+/* Sidebar lengkungan */
+.sidebar-custom {
+    height: 100%;
+    width: 260px;
+    position: fixed;
+    z-index: 1050;
+    top: 0;
+    right: -260px;
+    background-color: white;
+    transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 40px 0 0 40px;
+}
+
+/* Sembunyikan input asli tapi biarkan dia menutupi label agar bisa diklik */
+.hidden-trigger {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0; /* Tidak terlihat tapi bisa diklik */
+    cursor: pointer;
+    z-index: 2;
+}
+
+.icon-filter-container {
+    z-index: 1;
+}
+
+.filter-text {
+    z-index: 1;
+    transition: color 0.3s;
+}
+
+/* Sidebar lengkungan */
+.sidebar-custom {
+    border-radius: 40px 0 0 40px !important;
+}
+
+/* TOMBOL IKON FILTER */
+.btn-filter-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.apply-bg {
+    background-color: #5AB9FF; /* Biru khas SpendGuilty */
+    color: white;
+}
+
+.reset-bg {
+    background-color: #F5F5F5;
+    color: #888;
+}
+
+.btn-filter-icon:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    color: inherit;
+}
+
+.apply-bg:hover {
+    background-color: #4AA9EF;
+}
+
+.grid-menu-box {
+    width: 75px;
+    height: 75px;
+    background-color: white;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #5AB9FF; /* Biru khas SpendGuilty */
+    font-size: 1.8rem;
+    text-decoration: none;
+    margin: 0 auto; /* Menjaga posisi tetap di tengah kolom */
+    transition: transform 0.2s;
+}
+
+.grid-menu-box:active {
+    transform: scale(0.9);
+}
+
+.chart-container-main {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+.month-nav {
+    font-size: 1.1rem;
+}
+
+.stats-list-container {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+

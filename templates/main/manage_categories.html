@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="p-4" style="background-color: #F8F9FA; min-height: 100vh;">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{{ url_for('home') }}" class="text-dark me-3" style="font-size: 1.2rem;"><i class="fas fa-arrow-left"></i></a>
+        <h5 class="fw-bold m-0" style="color: #333;">Kelola Kategori</h5>
+    </div>
+
+    <div class="text-center mb-4">
+        <a href="{{ url_for('add_category') }}" class="btn rounded-pill px-4 shadow-sm d-inline-flex align-items-center justify-content-center" 
+           style="background-color: #6CB4EE; color: white; border: none; font-weight: 600; font-size: 0.85rem; min-width: 180px; height: 42px;">
+            <i class="fas fa-plus me-2" style="font-size: 0.75rem;"></i> Tambah Kategori
+        </a>
+    </div>
+
+    <div class="category-scroll-container">
+        <div class="d-flex flex-column gap-3">
+            {% for kat in categories %}
+            <div class="category-card shadow-sm d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" 
+                         style="width: 45px; height: 45px; background-color: #F0F8FF; color: #6CB4EE;">
+                        <i class="{{ kat.icon if kat.icon else 'fas fa-tag' }}"></i>
+                    </div>
+                    <h6 class="fw-semibold m-0 text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.5px; color: #444;">{{ kat.nama }}</h6>
+                </div>
+                
+                <a href="{{ url_for('delete_category', id=kat.id) }}" 
+                   class="btn btn-link text-danger p-2" 
+                   onclick="return confirm('Hapus kategori {{ kat.nama }}?')"
+                   style="text-decoration: none; opacity: 0.7;">
+                    <i class="fas fa-trash-alt" style="font-size: 0.9rem;"></i>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+    /* CSS UNTUK LIMIT 6 ITEM (Scrollable) */
+    .category-scroll-container {
+        max-height: 480px; /* Estimasi tinggi 6 item (75px-80px per item) */
+        overflow-y: auto;
+        padding: 5px; /* Biar shadow kartu tidak terpotong */
+        scrollbar-width: none; /* Hilangkan scrollbar di Firefox */
+    }
+
+    /* Hilangkan scrollbar di Chrome/Safari */
+    .category-scroll-container::-webkit-scrollbar {
+        display: none;
+    }
+
+    .category-card {
+        background-color: white;
+        padding: 1rem;
+        border-radius: 20px;
+        transition: transform 0.1s;
+    }
+
+    .category-card:active {
+        transform: scale(0.98);
+    }
+
+    .btn:active {
+        transform: scale(0.96);
+    }
+
+    /* Shadow yang lebih halus agar senada dengan image_cc1e7d.png */
+    .shadow-sm {
+        box-shadow: 0 .125rem .25rem rgba(0,0,0,.05)!important;
+    }
+</style>
+
+{% endblock %}

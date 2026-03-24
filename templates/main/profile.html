@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    /* 1. HEADER BIRU */
+    .header-bg {
+        background-color: #6CB4EE;
+        height: 320px; /* Tambah tinggi biar muat */
+        border-bottom-left-radius: 40px;
+        border-bottom-right-radius: 40px;
+        padding-top: 30px;
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        color: white;
+    }
+
+    /* 2. CARD PUTIH MELAYANG */
+    .main-card {
+        background: white;
+        border-radius: 30px;
+        padding: 40px 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        margin: -80px 20px 20px 20px;
+        position: relative;
+        z-index: 2;
+        min-height: 400px;
+    }
+
+    /* 3. AVATAR PROFILE DENGAN OVERLAY KAMERA */
+    .avatar-wrapper {
+        position: relative;
+        width: 110px;
+        height: 110px;
+        margin: 0 auto 15px auto;
+        cursor: pointer; /* Biar kerasa bisa diklik */
+    }
+
+    .profile-avatar {
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.2);
+        border: 4px solid rgba(255, 255, 255, 0.4);
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 2.5rem;
+        color: white;
+        overflow: hidden; /* Biar gambar ga keluar bulat */
+        object-fit: cover;
+    }
+
+    .profile-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Overlay Kamera (Muncul saat mode edit) */
+    .camera-overlay {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: #333;
+        color: white;
+        width: 35px; height: 35px;
+        border-radius: 50%;
+        display: flex; justify-content: center; align-items: center;
+        border: 2px solid white;
+        font-size: 0.9rem;
+        display: none; /* Awalnya sembunyi */
+    }
+
+    /* 4. FORM INPUT CUSTOM */
+    .form-group-custom {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 12px 20px;
+        margin-bottom: 20px;
+        display: flex; align-items: center;
+        border: 1px solid transparent; transition: 0.3s;
+    }
+    
+    .form-group-custom.editable {
+        background: white; border-color: #ced4da;
+    }
+    .form-group-custom.editable:focus-within {
+        border-color: #6CB4EE; box-shadow: 0 0 0 4px rgba(108, 180, 238, 0.1);
+    }
+
+    .form-icon { color: #adb5bd; margin-right: 15px; width: 20px; text-align: center; }
+    
+    .form-input {
+        border: none; background: transparent;
+        width: 100%; font-weight: 600; color: #333;
+        outline: none; font-size: 0.95rem;
+    }
+    .form-input:read-only { color: #555; }
+    .form-label {
+        font-size: 0.75rem; font-weight: 700; color: #999;
+        margin-bottom: 5px; display: block; margin-left: 5px;
+        text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    /* BUTTONS */
+    .back-btn { position: absolute; left: 25px; top: 30px; color: white; font-size: 1.3rem; text-decoration: none; opacity: 0.9; }
+    .edit-btn { position: absolute; right: 25px; top: 30px; color: white; font-size: 1.2rem; text-decoration: none; opacity: 0.9; cursor: pointer; padding: 5px; }
+    .edit-btn:hover { opacity: 1; transform: scale(1.1); }
+    .btn-save { background-color: #6CB4EE; color: white; border: none; padding: 15px; border-radius: 50px; width: 100%; font-weight: 600; font-size: 1rem; box-shadow: 0 8px 20px rgba(108, 180, 238, 0.3); margin-top: 10px; }
+    .btn-logout { display: flex; align-items: center; justify-content: center; width: 100%; padding: 15px; margin-top: 15px; color: #ff6b6b; background: #fff5f5; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: 0.2s; }
+    .d-none-custom { display: none; }
+</style>
+
+<div class="header-bg">
+    <a href="{{ url_for('dashboard') }}" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+    <a onclick="toggleEditMode()" class="edit-btn"><i class="fas fa-pencil-alt"></i></a>
+    
+    <div class="avatar-wrapper" onclick="triggerUpload()">
+        <div class="profile-avatar">
+            {% if user.foto %}
+                <img src="{{ url_for('static', filename='uploads/' + user.foto) }}" class="profile-img" id="preview-img">
+            {% else %}
+                <i class="fas fa-user" id="default-icon"></i>
+                <img src="" class="profile-img d-none-custom" id="preview-img-hidden">
+            {% endif %}
+        </div>
+        <div class="camera-overlay" id="cam-icon">
+            <i class="fas fa-camera"></i>
+        </div>
+    </div>
+
+    <h4 class="fw-bold mb-0">{{ user.nama }}</h4>
+    <p style="opacity: 0.8; font-size: 0.9rem;">{{ user.pekerjaan if user.pekerjaan else 'Pengguna Setia' }}</p>
+</div>
+
+<div class="main-card">
+    <form action="{{ url_for('profile') }}" method="POST" enctype="multipart/form-data">
+        
+        <input type="file" name="foto" id="fileInput" class="d-none-custom" accept="image/*" onchange="previewFile(this)">
+
+        <div>
+            <span class="form-label">Nama Lengkap</span>
+            <div class="form-group-custom" id="bg-nama">
+                <i class="fas fa-id-card form-icon"></i>
+                <input type="text" name="nama" id="input-nama" class="form-input" 
+                       value="{{ user.nama }}" required autocomplete="off" readonly>
+            </div>
+        </div>
+
+        <div>
+            <span class="form-label">Email Akun</span>
+            <div class="form-group-custom" style="background-color: #e9ecef;">
+                <i class="fas fa-envelope form-icon"></i>
+                <input type="text" value="{{ user.email }}" class="form-input" readonly 
+                       style="color: #6c757d; cursor: not-allowed;">
+                <i class="fas fa-lock text-muted small" style="font-size: 0.8rem;"></i>
+            </div>
+        </div>
+
+        <div>
+            <span class="form-label">Pekerjaan</span>
+            <div class="form-group-custom" id="bg-kerja">
+                <i class="fas fa-briefcase form-icon"></i>
+                <input type="text" name="pekerjaan" id="input-kerja" class="form-input" 
+                       value="{{ user.pekerjaan if user.pekerjaan else '' }}" 
+                       placeholder="Misal: Mahasiswa / Karyawan" autocomplete="off" readonly>
+            </div>
+        </div>
+
+        <div id="password-section" class="d-none-custom">
+            <span class="form-label">Ganti Password (Opsional)</span>
+            <div class="form-group-custom editable">
+                <i class="fas fa-lock form-icon"></i>
+                <input type="password" name="password" class="form-input" 
+                       placeholder="Biarkan kosong jika tidak diganti" autocomplete="new-password">
+            </div>
+        </div>
+
+        <button type="submit" id="btn-save" class="btn-save d-none-custom">Simpan Perubahan</button>
+        <a href="{{ url_for('logout') }}" id="btn-logout" class="btn-logout" onclick="return confirm('Yakin ingin keluar?')">
+            <i class="fas fa-sign-out-alt me-2"></i> Keluar Aplikasi
+        </a>
+    </form>
+</div>
+
+<script>
+let isEditMode = false;
+
+function toggleEditMode() {
+    isEditMode = !isEditMode; // Toggle status
+    
+    const inputNama = document.getElementById('input-nama');
+    const inputKerja = document.getElementById('input-kerja');
+    const bgNama = document.getElementById('bg-nama');
+    const bgKerja = document.getElementById('bg-kerja');
+    const passSection = document.getElementById('password-section');
+    const btnSave = document.getElementById('btn-save');
+    const btnLogout = document.getElementById('btn-logout');
+    const camIcon = document.getElementById('cam-icon');
+
+    if (isEditMode) {
+        // --- MODE EDIT ON ---
+        inputNama.removeAttribute('readonly');
+        inputKerja.removeAttribute('readonly');
+        bgNama.classList.add('editable');
+        bgKerja.classList.add('editable');
+        passSection.classList.remove('d-none-custom');
+        btnSave.classList.remove('d-none-custom');
+        camIcon.style.display = 'flex'; // Munculkan ikon kamera
+        btnLogout.classList.add('d-none-custom');
+    } else {
+        // --- MODE EDIT OFF ---
+        inputNama.setAttribute('readonly', true);
+        inputKerja.setAttribute('readonly', true);
+        bgNama.classList.remove('editable');
+        bgKerja.classList.remove('editable');
+        passSection.classList.add('d-none-custom');
+        btnSave.classList.add('d-none-custom');
+        camIcon.style.display = 'none'; // Sembunyikan ikon kamera
+        btnLogout.classList.remove('d-none-custom');
+    }
+}
+
+// Fungsi Trigger Upload saat klik Avatar (hanya di mode edit)
+function triggerUpload() {
+    if (isEditMode) {
+        document.getElementById('fileInput').click();
+    }
+}
+
+// Preview Gambar setelah dipilih
+function previewFile(input) {
+    const file = input.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            // Cek elemen gambar yang aktif
+            let img = document.getElementById('preview-img');
+            let icon = document.getElementById('default-icon');
+            let hiddenImg = document.getElementById('preview-img-hidden');
+
+            if(img) {
+                img.src = e.target.result;
+            } else {
+                // Kalau user belum punya foto, sembunyikan ikon, munculkan img
+                icon.style.display = 'none';
+                hiddenImg.src = e.target.result;
+                hiddenImg.classList.remove('d-none-custom');
+                hiddenImg.style.display = 'block';
+            }
+        }
+        reader.readAsDataURL(file);
+    }
+}
+</script>
+
+{% endblock %}

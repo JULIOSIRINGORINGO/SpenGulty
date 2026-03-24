@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    /* 1. BACKGROUND FULL BIRU */
+    body {
+        background-color: #6CB4EE !important;
+        margin: 0;
+        height: 100vh;
+        overflow: hidden; 
+    }
+    
+    .login-container {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        padding-top: 15vh;
+        align-items: center;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    /* 2. BRAND TITLE */
+    .brand-title {
+        color: white; 
+        font-weight: 900;
+        font-size: 2.5rem; 
+        letter-spacing: 1px;
+        margin-bottom: 5px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .brand-subtitle {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1rem;
+        font-weight: 500;
+        margin-bottom: 50px;
+    }
+
+    /* 3. KARTU LOGIN PUTIH */
+    .login-card {
+        background: white;
+        width: 100%;
+        max-width: 350px; 
+        padding: 40px 30px; 
+        border-radius: 35px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.15); 
+        text-align: center;
+    }
+
+    /* 4. ALERT ERROR CUSTOM (Dengan Animasi) */
+    .alert-custom {
+        background-color: #ffe5e5;
+        color: #ff6b6b;
+        font-size: 0.9rem;
+        font-weight: 600;
+        padding: 12px;
+        border-radius: 15px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #ffcccc;
+        
+        /* Animasi Hilang */
+        opacity: 1;
+        transition: opacity 0.5s ease-out; /* Efek memudar halus */
+    }
+
+    /* 5. INPUT MODERN */
+    .form-group-custom {
+        background: #f8f9fa;
+        border-radius: 50px;
+        padding: 12px 20px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        border: 1px solid transparent;
+        transition: 0.3s;
+    }
+    .form-group-custom:focus-within {
+        background: white;
+        border-color: #6CB4EE;
+        box-shadow: 0 0 0 4px rgba(108, 180, 238, 0.2);
+    }
+    .form-icon {
+        color: #adb5bd;
+        margin-right: 15px;
+        font-size: 1.1rem;
+    }
+    
+    .form-input {
+        border: none;
+        background: transparent;
+        flex: 1;
+        font-weight: 600;
+        color: #333;
+        outline: none;
+        font-size: 0.95rem;
+    }
+    .form-input::placeholder {
+        color: #bbb;
+        font-weight: 400;
+    }
+
+    .toggle-password {
+        color: #adb5bd;
+        cursor: pointer;
+        padding: 5px;
+        font-size: 0.9rem;
+    }
+    .toggle-password:hover {
+        color: #6CB4EE;
+    }
+
+    /* 6. TOMBOL LOGIN */
+    .btn-login {
+        background-color: #6CB4EE;
+        color: white;
+        border: none;
+        padding: 15px;
+        border-radius: 50px;
+        width: 100%;
+        font-weight: 700;
+        font-size: 1rem;
+        letter-spacing: 1px;
+        box-shadow: 0 10px 20px rgba(108, 180, 238, 0.3);
+        transition: transform 0.1s;
+        margin-top: 10px;
+    }
+    .btn-login:active {
+        transform: scale(0.97);
+    }
+
+    .register-link {
+        margin-top: 25px;
+        display: block;
+        font-size: 0.9rem;
+        color: #888;
+    }
+    .register-link a {
+        color: #6CB4EE;
+        font-weight: 700;
+        text-decoration: none;
+    }
+</style>
+
+<div class="login-container">
+    
+    <h2 class="brand-title">SpendGuilty</h2>
+    <p class="brand-subtitle">Masuk untuk kelola keuanganmu</p>
+
+    <div class="login-card">
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert-custom" id="alert-box">
+                  <i class="fas fa-exclamation-circle me-2"></i> {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            
+            <div class="form-group-custom">
+                <i class="fas fa-envelope form-icon"></i>
+                <input type="email" name="email" class="form-input" placeholder="Email Address" required>
+            </div>
+
+            <div class="form-group-custom">
+                <i class="fas fa-lock form-icon"></i>
+                <input type="password" name="password" id="passwordInput" class="form-input" placeholder="Password" required>
+                <i class="fas fa-eye toggle-password" onclick="togglePassword(this)"></i>
+            </div>
+
+            <button type="submit" class="btn-login">
+                MASUK SEKARANG
+            </button>
+        </form>
+
+        <div class="register-link">
+            Belum punya akun? <a href="{{ url_for('register') }}">Daftar disini</a>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// 1. Fungsi Toggle Password (Mata)
+function togglePassword(icon) {
+    const input = document.getElementById('passwordInput');
+    if (input.type === "password") {
+        input.type = "text";
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = "password";
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+// 2. Fungsi Hilangkan Alert Otomatis
+document.addEventListener("DOMContentLoaded", function() {
+    let alerts = document.querySelectorAll('.alert-custom');
+    
+    if (alerts.length > 0) {
+        // Tahan 2 detik (2000ms) biar sempat dibaca
+        setTimeout(function() {
+            alerts.forEach(function(alert) {
+                alert.style.opacity = '0'; // Mulai memudar (fade out)
+                
+                // Setelah animasi pudar selesai (0.5 detik), hapus dari layar
+                setTimeout(function() {
+                    alert.style.display = 'none'; 
+                }, 500); 
+            });
+        }, 500); // <-- Ganti angka ini kalau mau lebih cepat/lama
+    }
+});
+</script>
+
+{% endblock %}

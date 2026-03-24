@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    /* 1. HEADER BIRU (Lebih Tinggi biar lega) */
+    .header-bg {
+        background-color: #6CB4EE;
+        height: 300px; /* Ditambah tingginya */
+        border-bottom-left-radius: 40px;
+        border-bottom-right-radius: 40px;
+        padding-top: 40px; /* Padding atas ditambah */
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        color: white;
+    }
+
+    /* 2. CARD PUTIH (Posisi disesuaikan) */
+    .main-card {
+        background: white;
+        border-radius: 30px;
+        padding: 40px 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        margin: -100px 20px 20px 20px; /* Tarikan ke atas dikurangi (-100px) */
+        position: relative;
+        z-index: 2;
+        min-height: 300px;
+        text-align: center;
+    }
+
+    /* 3. INPUT SALDO */
+    .big-input-wrapper {
+        margin-bottom: 40px;
+        position: relative;
+    }
+    .big-input {
+        border: none;
+        border-bottom: 2px solid #eee;
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #333;
+        width: 100%;
+        text-align: center;
+        background: transparent;
+        outline: none;
+        padding-bottom: 10px;
+        transition: border-color 0.3s;
+    }
+    .big-input:focus {
+        border-bottom-color: #6CB4EE;
+    }
+
+    /* TOMBOL KEMBALI */
+    .back-btn {
+        position: absolute;
+        left: 25px;
+        top: 40px;
+        color: white;
+        font-size: 1.3rem;
+        text-decoration: none;
+        opacity: 0.9;
+    }
+
+    /* TOMBOL SIMPAN (Font Tidak Bold) */
+    .btn-save {
+        background-color: #6CB4EE;
+        color: white;
+        border: none;
+        padding: 15px;
+        border-radius: 50px;
+        width: 100%;
+        font-weight: 500; /* Medium, bukan Bold */
+        font-size: 1rem;
+        box-shadow: 0 8px 20px rgba(108, 180, 238, 0.3);
+        transition: transform 0.1s;
+    }
+    .btn-save:active {
+        transform: scale(0.98);
+    }
+</style>
+
+<div class="header-bg">
+    <a href="{{ url_for('dashboard') }}" class="back-btn">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+
+    <div style="margin-top: 10px;">
+        <i class="fas fa-wallet fa-3x mb-3" style="opacity: 0.9;"></i>
+        <h4 class="fw-bold m-0" style="letter-spacing: 0.5px;">Kelola Saldo</h4>
+        <p style="opacity: 0.8; font-size: 0.9rem; margin-top: 5px;">Atur budget bulananmu</p>
+    </div>
+</div>
+
+<div class="main-card">
+    <form action="{{ url_for('set_budget') }}" method="POST">
+        
+        <label class="text-muted fw-bold small mb-4 d-block" style="letter-spacing: 1px;">SALDO SAAT INI</label>
+
+        <div class="big-input-wrapper">
+            <input type="text" id="display-nominal" 
+                   class="big-input" 
+                   placeholder="Rp 0" 
+                   value="{{ budget.amount if budget else '' }}" 
+                   oninput="formatInput(this)"
+                   autocomplete="off">
+            
+            <input type="hidden" name="nominal" id="real-nominal" 
+                   value="{{ budget.amount if budget else 0 }}">
+        </div>
+
+        <button type="submit" class="btn-save mb-4">
+            Simpan Perubahan
+        </button>
+
+        {% if budget and budget.amount > 0 %}
+            <button type="submit" class="btn btn-link text-danger text-decoration-none small fw-bold" 
+                    style="font-size: 0.9rem;"
+                    onclick="document.getElementById('real-nominal').value='0'; return confirm('Yakin reset saldo jadi 0?')">
+                <i class="fas fa-undo me-2"></i> Reset Saldo
+            </button>
+        {% endif %}
+    </form>
+</div>
+
+<script>
+    function formatInput(input) {
+        let rawValue = input.value.replace(/[^0-9]/g, '');
+        document.getElementById('real-nominal').value = rawValue;
+        
+        if (rawValue === '') {
+            input.value = '';
+        } else {
+            let formatted = new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(rawValue);
+            input.value = formatted; 
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        let displayInput = document.getElementById('display-nominal');
+        let realInput = document.getElementById('real-nominal');
+        
+        if (realInput.value && realInput.value != '0') {
+            displayInput.value = realInput.value;
+            formatInput(displayInput);
+        } else {
+            displayInput.value = '';
+        }
+    });
+</script>
+
+{% endblock %}

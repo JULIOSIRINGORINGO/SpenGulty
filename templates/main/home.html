@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    .hidden-trigger {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+        pointer-events: none;
+    }
+
+    #sidebarOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.15);
+        z-index: 999;
+        display: none;
+    }
+
+    .sidebar-custom {
+        position: fixed;
+        top: 0;
+        width: 280px;
+        height: 100%;
+        background: white;
+        z-index: 1000;
+        transition: 0.3s ease;
+        overflow-y: auto;
+    }
+
+    .transaction-scroll-area {
+        max-height: 480px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-width: none;
+    }
+    .transaction-scroll-area::-webkit-scrollbar { display: none; }
+    .text-app-blue { color: #6CB4EE !important; }
+
+    .updating { opacity: 0.4; transition: 0.2s; }
+</style>
+
+<div id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<div class="dash-header-container" style="height: 140px; background-color: #6CB4EE; border-bottom-left-radius: 40px; border-bottom-right-radius: 40px;">
+    <div class="d-flex justify-content-between align-items-center px-4 pt-4">
+        <div style="width: 30px;"></div>
+        <h5 class="fw-bold text-white m-0" style="letter-spacing: 1px;">SpendGuilty</h5>
+        <div class="hamburger-menu" onclick="handleHamburgerClick()" style="cursor: pointer; z-index: 1001;">
+            <i class="fas fa-bars text-white fa-lg"></i>
+        </div>
+    </div>
+</div>
+
+<div id="mySidebar" class="sidebar-custom shadow" style="right: -280px;">
+    <div class="p-4 pt-5 d-flex flex-column h-100">
+        <div class="text-center mb-5">
+            <h6 class="fw-bold m-0" style="font-size: 1.1rem;">Filter</h6>
+        </div>
+
+        <form action="{{ url_for('home') }}" method="GET" id="filterForm" class="flex-grow-1" onsubmit="event.preventDefault(); submitWithAjax();">
+            <div class="ms-3">
+                <div class="d-flex align-items-center mb-4 cursor-pointer position-relative" onclick="triggerCategoryPicker()">
+                    <div class="icon-filter-container me-3 text-app-blue" style="width: 25px;"><i class="fas fa-th-large"></i></div>
+                    <span class="fw-bold small" id="txt-kategori">kategori</span>
+                    <select name="cat_id" class="hidden-trigger" onchange="updateCategoryFilter(this)">
+                        <option value="">Semua</option>
+                        {% for kat in categories %}
+                        <option value="{{ kat.id }}">{{ kat.nama }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="d-flex align-items-center mb-4 cursor-pointer position-relative" onclick="triggerMonthPicker()">
+                    <div class="icon-filter-container me-3 text-app-blue" style="width: 25px;"><i class="fas fa-calendar-alt"></i></div>
+                    <span class="fw-bold small" id="txt-bulan">bulan</span>
+                    <input type="month" name="month" id="month-input" class="hidden-trigger" onchange="updateMonthLabel(this)">
+                </div>
+                
+                <div class="d-flex align-items-center mb-4 cursor-pointer position-relative" onclick="showRangeInputs()">
+                    <div class="icon-filter-container me-3 text-app-blue" style="width: 25px;"><i class="fas fa-calendar-check"></i></div>
+                    <span class="fw-bold small" id="txt-range">tanggal s/d</span>
+                </div>
+                <div id="range-inputs" style="display:none; padding-left: 40px;" class="mb-3">
+                    <input type="date" name="start_date" class="form-control form-control-sm mb-1 border-0 bg-light" onchange="checkRangeSubmit()">
+                    <input type="date" name="end_date" class="form-control form-control-sm border-0 bg-light" onchange="checkRangeSubmit()">
+                </div>
+                
+                <div class="d-flex align-items-center mb-4 cursor-pointer" onclick="selectSort('terbanyak')">
+                    <div class="icon-filter-container me-3 text-app-blue" style="width: 25px;"><i class="fas fa-sort-amount-down"></i></div>
+                    <span class="fw-bold small" id="txt-terbanyak">Terbanyak</span>
+                </div>
+                <div class="d-flex align-items-center mb-4 cursor-pointer" onclick="selectSort('terkecil')">
+                    <div class="icon-filter-container me-3 text-app-blue" style="width: 25px;"><i class="fas fa-sort-amount-up"></i></div>
+                    <span class="fw-bold small" id="txt-terkecil">Terkecil</span>
+                </div>
+                <input type="hidden" name="sort" id="sort-input" value="">
+            </div>
+
+            <div class="pt-4 border-top mt-auto">
+                <a href="{{ url_for('dashboard') }}" class="d-block mb-3 text-decoration-none text-dark small fw-bold"><i class="fas fa-home me-2 text-muted"></i> Dashboard</a>
+                <a href="{{ url_for('manage_categories') }}" class="d-block mb-3 text-decoration-none text-dark small fw-bold"><i class="fas fa-tags me-2 text-muted"></i> Kelola Kategori</a>
+                <a href="{{ url_for('logout') }}" class="d-block text-decoration-none text-danger small fw-bold"><i class="fas fa-sign-out-alt me-2"></i> Keluar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="main-content-overlap" style="margin-top: -20px; padding: 0 15px;">
+    <div class="card-list-white shadow-sm p-4" style="background: white; border-radius: 40px; min-height: 70vh;">
+        <div class="text-center mb-4">
+            <h6 class="fw-bold m-0">Daftar Pengeluaran</h6>
+            <div style="height: 3px; width: 40px; background: #333; margin: 10px auto; border-radius: 10px;"></div>
+        </div>
+
+        <div class="transaction-scroll-area">
+            <div class="transaction-rows" id="transaction-container">
+                {% for t in data %}
+                <div class="row align-items-center py-3 border-bottom-light clickable-row" onclick="openDetail(this)" style="cursor: pointer; font-size: 0.8rem;"
+                     data-id="{{ t.id }}" data-nominal="{{ t.nominal }}" data-kat="{{ t.kategori.nama }}"
+                     data-icon="{{ t.kategori.icon }}" data-ket="{{ t.keterangan }}" data-tgl="{{ t.tanggal.strftime('%d %b %Y') }}">
+                    <div class="col-2 text-muted small">{{ t.tanggal.strftime('%d/%m') }}</div>
+                    <div class="col-3 fw-bold text-uppercase text-truncate">{{ t.kategori.nama }}</div>
+                    <div class="col-3 text-muted text-truncate">{{ t.keterangan }}</div>
+                    <div class="col-4 text-end fw-bold {{ 'text-success' if t.tipe == 'Pemasukan' else 'text-danger' }}">
+                        {{ "{:,.0f}".format(t.nominal).replace(',', '.') }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalDetail" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered px-4">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 25px;">
+            <div class="modal-body p-4 text-center">
+                <div class="mb-3">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle shadow-sm"
+                         style="width: 70px; height: 70px; background-color: #6CB4EE; color: white;">
+                        <i id="pop-icon" class="fas fa-wallet fa-2x"></i>
+                    </div>
+                </div>
+
+                <h5 class="fw-bold mb-1" id="pop-kategori">Kategori</h5>
+                <p class="text-muted small mb-3" id="pop-tanggal">Tanggal</p>
+
+                <h2 class="fw-bold text-dark mb-3" id="pop-nominal">Rp 0</h2>
+
+                <div class="bg-light p-3 rounded-4 mb-4 text-start">
+                    <small class="text-muted d-block fw-bold">Catatan:</small>
+                    <span id="pop-keterangan" class="text-dark">Tidak ada catatan</span>
+                </div>
+
+                <div class="d-flex justify-content-center gap-3 mt-4">
+                    
+                    <a href="#" id="btn-edit" class="btn rounded-circle p-0 d-flex align-items-center justify-content-center"
+                       style="width: 35px; height: 35px; background-color: #fff3cd; color: #ffc107; border: none; transition: 0.2s;">
+                        <i class="fas fa-pen" style="font-size: 1.1rem;"></i>
+                    </a>
+
+                    <a href="#" id="btn-delete" class="btn rounded-circle p-0 d-flex align-items-center justify-content-center"
+                       style="width: 35px; height: 35px; background-color: #ffe5e5; color: #ff6b6b; border: none; transition: 0.2s;"
+                       onclick="return confirm('Hapus transaksi ini?')">
+                        <i class="fas fa-trash-alt" style="font-size: 1.1rem;"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// AJAX: Update data tanpa refresh
+function submitWithAjax() {
+    const form = document.getElementById('filterForm');
+    const formData = new FormData(form);
+    const params = new URLSearchParams(formData).toString();
+    const url = `{{ url_for('home') }}?${params}`;
+
+    const container = document.getElementById('transaction-container');
+    container.classList.add('updating');
+
+    fetch(url)
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newContent = doc.getElementById('transaction-container').innerHTML;
+            container.innerHTML = newContent;
+            container.classList.remove('updating');
+        });
+}
+
+function resetFilters() {
+    const form = document.getElementById('filterForm');
+    form.reset(); 
+    document.getElementById('sort-input').value = ""; 
+    document.getElementById('txt-kategori').innerText = "kategori";
+    document.getElementById('txt-kategori').style.color = "#333";
+    document.getElementById('txt-bulan').innerText = "bulan";
+    document.getElementById('txt-bulan').style.color = "#333";
+    document.getElementById('txt-range').style.color = "#333";
+    document.getElementById('txt-terbanyak').style.color = "#333";
+    document.getElementById('txt-terkecil').style.color = "#333";
+    document.getElementById('range-inputs').style.display = 'none';
+}
+
+function handleHamburgerClick() {
+    const sidebar = document.getElementById("mySidebar");
+    if (sidebar.style.right === "-280px") {
+        resetFilters(); 
+        submitWithAjax(); 
+        toggleSidebar(); 
+    } else {
+        toggleSidebar(); 
+    }
+}
+
+function toggleSidebar() {
+    const sidebar = document.getElementById("mySidebar");
+    const overlay = document.getElementById("sidebarOverlay");
+    sidebar.style.right = (sidebar.style.right === "0px") ? "-280px" : "0px";
+    overlay.style.display = (sidebar.style.right === "0px") ? "block" : "none";
+}
+
+function triggerCategoryPicker() {
+    const select = document.querySelector('select[name="cat_id"]');
+    if ('showPicker' in HTMLSelectElement.prototype) {
+        select.showPicker();
+    } else {
+        select.focus();
+    }
+}
+
+function updateCategoryFilter(el) {
+    const label = document.getElementById('txt-kategori');
+    label.innerText = el.options[el.selectedIndex].text;
+    label.style.color = "#6CB4EE";
+    submitWithAjax();
+}
+
+function selectSort(mode) {
+    document.getElementById('sort-input').value = mode;
+    document.getElementById('txt-terbanyak').style.color = (mode === 'terbanyak') ? "#6CB4EE" : "#333";
+    document.getElementById('txt-terkecil').style.color = (mode === 'terkecil') ? "#6CB4EE" : "#333";
+    submitWithAjax(); 
+}
+
+function updateMonthLabel(el) {
+    if (!el.value) return;
+    document.getElementById('txt-bulan').innerText = el.value;
+    document.getElementById('txt-bulan').style.color = "#6CB4EE";
+    submitWithAjax();
+}
+
+function checkRangeSubmit() {
+    const d1 = document.getElementsByName('start_date')[0].value;
+    const d2 = document.getElementsByName('end_date')[0].value;
+    if (d1 && d2) {
+        document.getElementById('txt-range').style.color = "#6CB4EE";
+        submitWithAjax();
+    }
+}
+
+function triggerMonthPicker() {
+    const input = document.getElementById('month-input');
+    if ('showPicker' in HTMLInputElement.prototype) {
+        try { input.showPicker(); } catch (e) { input.click(); }
+    } else { input.click(); }
+}
+
+function showRangeInputs() {
+    const div = document.getElementById('range-inputs');
+    div.style.display = (div.style.display === 'none') ? 'block' : 'none';
+}
+
+function openDetail(el) {
+    const nom = el.getAttribute('data-nominal');
+    document.getElementById('pop-nominal').innerText = 'Rp ' + parseInt(nom).toLocaleString('id-ID');
+    document.getElementById('pop-kategori').innerText = el.getAttribute('data-kat');
+    document.getElementById('pop-keterangan').innerText = el.getAttribute('data-ket') || '-';
+    document.getElementById('pop-tanggal').innerText = el.getAttribute('data-tgl');
+    document.getElementById('pop-icon').className = (el.getAttribute('data-icon') || 'fas fa-wallet') + ' fa-2x';
+    document.getElementById('btn-edit').href = "/add_expense?edit_id=" + el.getAttribute('data-id');
+    document.getElementById('btn-delete').href = "/delete_expense/" + el.getAttribute('data-id');
+    
+    new bootstrap.Modal(document.getElementById('modalDetail')).show();
+}
+</script>
+{% endblock %}

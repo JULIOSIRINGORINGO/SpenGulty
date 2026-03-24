@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    /* 1. HEADER BIRU MELENGKUNG (KONSISTENSI) */
+    .header-bg {
+        background-color: #6CB4EE;
+        height: 220px; 
+        border-bottom-left-radius: 40px;
+        border-bottom-right-radius: 40px;
+        padding-top: 30px;
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        color: white;
+    }
+
+    /* 2. CARD PUTIH MELAYANG */
+    .main-card {
+        background: white;
+        border-radius: 30px;
+        padding: 30px 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        margin: -100px 20px 20px 20px; /* Tarik ke atas menumpuk header */
+        position: relative;
+        z-index: 2;
+        min-height: 400px;
+    }
+
+    /* 3. INPUT NOMINAL RAKSASA */
+    .big-input-wrapper {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .currency-label {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #6CB4EE;
+        margin-right: 5px;
+    }
+    .big-input {
+        border: none;
+        border-bottom: 2px solid #eee;
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #333;
+        width: 80%;
+        text-align: center;
+        background: transparent;
+        outline: none;
+        padding-bottom: 5px;
+    }
+    .big-input:focus {
+        border-bottom-color: #6CB4EE;
+    }
+    .big-input::placeholder {
+        color: #e0e0e0;
+    }
+
+    /* 4. GRID KATEGORI (1 BARIS SCROLL) */
+    .category-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr); /* Tetap 4 kolom */
+        gap: 15px;
+        margin-bottom: 20px;
+        
+        /* --- UPDATE DISINI --- */
+        max-height: 95px;  /* Tinggi ini pas untuk 1 baris (Ikon + Teks) */
+        overflow-y: auto;  /* Aktifkan scroll vertikal */
+        padding: 5px;      
+        
+        /* Sembunyikan Scrollbar */
+        scrollbar-width: none; 
+        -ms-overflow-style: none;
+    }
+    
+    .category-grid::-webkit-scrollbar { 
+        display: none; 
+    }
+    .cat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+        opacity: 0.6;
+        transition: 0.2s;
+    }
+    .cat-icon-box {
+        width: 50px;
+        height: 50px;
+        background-color: #f8f9fa;
+        border-radius: 15px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.2rem;
+        color: #666;
+        margin-bottom: 5px;
+        border: 2px solid transparent;
+    }
+    .cat-name {
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-align: center;
+        color: #888;
+    }
+    
+    /* State Aktif (Dipilih) */
+    .cat-radio:checked + .cat-item {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+    .cat-radio:checked + .cat-item .cat-icon-box {
+        background-color: #eef7ff; /* Biru muda banget */
+        border-color: #6CB4EE;
+        color: #6CB4EE;
+    }
+    .cat-radio:checked + .cat-item .cat-name {
+        color: #6CB4EE;
+    }
+
+    /* FORM LAINNYA */
+    .form-group-custom {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 10px 15px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+    }
+    .form-icon {
+        color: #adb5bd;
+        margin-right: 15px;
+        width: 20px;
+        text-align: center;
+    }
+    .form-input {
+        border: none;
+        background: transparent;
+        width: 100%;
+        font-weight: 600;
+        color: #333;
+        outline: none;
+    }
+
+    /* BUTTONS */
+    .btn-save {
+        background-color: #6CB4EE;
+        color: white;
+        border: none;
+        padding: 15px;
+        border-radius: 50px;
+        width: 100%;
+        font-weight: bold;
+        font-size: 1rem;
+        box-shadow: 0 5px 15px rgba(108, 180, 238, 0.4);
+        margin-top: 10px;
+    }
+    .btn-cancel {
+        display: block;
+        text-align: center;
+        margin-top: 15px;
+        color: #999;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+</style>
+
+<div class="header-bg">
+    <h4 class="fw-bold mb-1">
+        {% if t %}Edit Pengeluaran{% else %}Pengeluaran{% endif %}
+    </h4>
+    <p style="opacity: 0.8; font-size: 0.9rem;">Catat pengeluaranmu hari ini</p>
+    
+    {% if t %}
+    <a href="{{ url_for('delete_expense', id=t.id) }}" 
+       class="btn btn-sm btn-danger rounded-pill px-3 position-absolute" 
+       style="top: 30px; right: 20px; background: rgba(255,0,0,0.2); border: none; font-size: 0.8rem;"
+       onclick="return confirm('Hapus data ini?')">
+       <i class="fas fa-trash"></i>
+    </a>
+    {% endif %}
+</div>
+
+<div class="main-card">
+    <form id="transaksiForm" action="{{ url_for('add_expense') }}" method="POST">
+        {% if t %}
+        <input type="hidden" name="target_id" value="{{ t.id }}">
+        {% endif %}
+
+        <div class="big-input-wrapper">
+            <span class="currency-label">Rp</span>
+            <input type="text" name="jumlah" class="big-input" placeholder="0" required 
+                   onkeyup="formatRupiah(this)" inputmode="numeric" autocomplete="off"
+                   value="{{ "{:,.0f}".format(t.nominal).replace(',', '.') if t else '' }}">
+        </div>
+
+        <div class="mb-2">
+            <small class="fw-bold text-muted ms-1" style="font-size: 0.8rem;">PILIH KATEGORI</small>
+        </div>
+        <div class="category-grid">
+            {% for kat in categories %}
+            <label>
+                <input type="radio" name="kategori_id" value="{{ kat.id }}" class="cat-radio d-none" 
+                       {% if t and t.kategori_id == kat.id %}checked{% endif %}>
+                
+                <div class="cat-item">
+                    <div class="cat-icon-box">
+                        <i class="{{ kat.icon }}"></i>
+                    </div>
+                    <span class="cat-name">{{ kat.nama }}</span>
+                </div>
+            </label>
+            {% endfor %}
+            
+        </div>
+
+        <div class="form-group-custom">
+            <i class="fas fa-calendar-alt form-icon"></i>
+            <input type="date" name="tanggal" class="form-input" required 
+                   value="{{ current_date }}">
+        </div>
+
+        <div class="form-group-custom">
+            <i class="fas fa-pen form-icon"></i>
+            <input type="text" name="keterangan" class="form-input" placeholder="Catatan (Makan siang, bensin, dll)" 
+                   autocomplete="off" value="{{ t.keterangan if t else '' }}">
+        </div>
+
+        <button type="submit" class="btn-save">
+            Simpan Transaksi
+        </button>
+        
+        <a href="{{ url_for('home') }}" class="btn-cancel">Batal</a>
+    </form>
+</div>
+
+<script>
+// Fungsi Format Rupiah
+function formatRupiah(elemen) {
+    let value = elemen.value.replace(/[^,\d]/g, "").toString();
+    let split = value.split(",");
+    let sisa = split[0].length % 3;
+    let rupiah = split[0].substr(0, sisa);
+    let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+    if (ribuan) {
+        let separator = sisa ? "." : "";
+        rupiah += separator + ribuan.join(".");
+    }
+    elemen.value = split[1] != undefined ? rupiah + "," + split[1] : rupiah;
+}
+
+// PERBAIKAN: Validasi Manual Saat Submit
+document.getElementById('transaksiForm').addEventListener('submit', function(e) {
+    // Cek apakah ada radio button yang dipilih
+    const categorySelected = document.querySelector('input[name="kategori_id"]:checked');
+    
+    if (!categorySelected) {
+        e.preventDefault(); // Stop kirim data ke server
+        alert("Harap pilih kategori terlebih dahulu!"); // Tampilkan pesan
+    }
+});
+</script>
+
+{% endblock %}
